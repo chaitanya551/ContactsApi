@@ -20,8 +20,26 @@ namespace ContactsApi.Data
 
         public List<Contact> GetAllContacts()
         {
+            if (!File.Exists(_filePath))
+            {
+                return new List<Contact>();
+            }
+
             var jsonData = File.ReadAllText(_filePath);
-            return JsonConvert.DeserializeObject<List<Contact>>(jsonData) ?? new List<Contact>();
+
+            if (string.IsNullOrWhiteSpace(jsonData))
+            {
+                return new List<Contact>();
+            }
+
+            try
+            {
+                return JsonConvert.DeserializeObject<List<Contact>>(jsonData) ?? new List<Contact>();
+            }
+            catch (JsonSerializationException)
+            {
+                return new List<Contact>();
+            }
         }
 
         public Contact GetContactById(int id)
@@ -33,7 +51,7 @@ namespace ContactsApi.Data
         public void AddContact(Contact contact)
         {
             var contacts = GetAllContacts();
-            contact.Id = contacts.Count > 0 ? contacts.Max(c => c.Id) + 1 : 0;
+            contact.Id = contacts.Count > 0 ? contacts.Max(c => c.Id) + 1 : 1;
             contacts.Add(contact);
             SaveContacts(contacts);
         }
